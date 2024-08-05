@@ -1,0 +1,56 @@
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <unistd.h>
+#include <time.h>
+#include <string.h>
+
+int main() {
+    struct sockaddr_in sa, cli;
+    int sockfd, conntfd;
+    int len;
+    char str[100];
+    time_t tick;
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        printf("Error in socket\n");
+        exit(0);
+    } else {
+        printf("Socket opened\n");
+    }
+
+    bzero(&sa, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons(5600);
+    sa.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if (bind(sockfd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
+        printf("Error in binding\n");
+        exit(0);
+    } else {
+        printf("Binded Successfully\n");
+    }
+
+    listen(sockfd, 50);
+    for (;;) {
+        len = sizeof(cli);  // Corrected to sizeof(cli) instead of sizeof(ch)
+        conntfd = accept(sockfd, (struct sockaddr *)&cli, &len);
+        if (conntfd < 0) {
+            printf("Error in accept\n");
+            continue;
+        }
+        printf("Accepted\n");
+        
+        tick = time(NULL);
+        snprintf(str, sizeof(str), "%s", ctime(&tick));
+        printf("%s", str);
+        write(conntfd, str, strlen(str));  // Corrected to send only the valid string length
+        close(conntfd);  // Close the connection socket after writing
+    }
+
+    close(sockfd);  // Close the main socket (not necessary in an infinite loop, but good practice)
+    return 0;
+}
