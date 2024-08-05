@@ -1,0 +1,43 @@
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <unistd.h>
+
+int main() {
+    struct sockaddr_in sa, cli;
+    int n, sockfd;
+    char buff[100];
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        printf("\nError in Socket");
+        exit(0);
+    } else {
+        printf("\nSocket is Opened");
+    }
+
+    bzero(&sa, sizeof(sa));
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons(5600);
+    sa.sin_addr.s_addr = htonl(INADDR_ANY); // This line was added
+
+    if (connect(sockfd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
+        printf("\nError in connection failed");
+        exit(0);
+    } else {
+        printf("\nConnected successfully");
+    }
+
+    if ((n = read(sockfd, buff, sizeof(buff) - 1)) < 0) {
+        printf("\nError in Reading");
+        exit(0);
+    } else {
+        buff[n] = '\0'; // Null-terminate the buffer to make it a valid C string
+        printf("\nMessage Read: %s", buff);
+    }
+
+    close(sockfd); // Always close the socket when done
+    return 0;
+}
